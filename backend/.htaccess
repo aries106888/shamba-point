@@ -1,0 +1,19 @@
+Options -MultiViews
+RewriteEngine On
+
+# Route all requests through index.php
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php [QSA,L]
+
+# Security headers
+Header always set X-Content-Type-Options "nosniff"
+Header always set X-Frame-Options "DENY"
+Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+# Prevent access to config files directly
+<FilesMatch "\.(php)$">
+  <If "%{REQUEST_URI} =~ m#/config/#">
+    Require all denied
+  </If>
+</FilesMatch>

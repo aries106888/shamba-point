@@ -1,0 +1,62 @@
+services:
+  # ── MySQL Database ─────────────────────────────────────────
+  db:
+    image: mysql:8.0
+    container_name: shambapoint_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: shambapoint
+      MYSQL_DATABASE: shambapoint
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./backend/database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./backend/database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql
+    ports:
+      - "3307:3306"       # 3307 on host to avoid conflicts with local MySQL
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── phpMyAdmin (dev only) ──────────────────────────────────
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: shambapoint_pma
+    restart: unless-stopped
+    environment:
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: shambapoint
+    ports:
+      - "8080:80"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ── PHP-Apache App ─────────────────────────────────────────
+  app:
+    build:
+      context: .
+      args:
+        VITE_API_BASE_URL: /api
+    container_name: shambapoint_app
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    environment:
+      DB_HOST: db
+      DB_NAME: shambapoint
+      DB_USER: root
+      DB_PASS: shambapoint
+      JWT_SECRET: ${JWT_SECRET:-change_me_for_production_please}
+      MPESA_MODE: ${MPESA_MODE:-mock}
+      DARAJA_CONSUMER_KEY: ${DARAJA_CONSUMER_KEY:-}
+      DARAJA_CONSUMER_SECRET: ${DARAJA_CONSUMER_SECRET:-}
+      DARAJA_SHORTCODE: ${DARAJA_SHORTCODE:-174379}
+      DARAJA_CALLBACK_URL: ${DARAJA_CALLBACK_URL:-http://localhost/api/mpesa?action=callback}
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db_data:

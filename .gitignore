@@ -1,0 +1,22 @@
+# ── Env files (never commit secrets) ─────────────
+.env
+.env.local
+.env.production
+
+# ── Node / frontend ───────────────────────────────
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# ── PHP / backend ────────────────────────────────
+vendor/
+*.log
+
+# ── OS / IDE ──────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# ── Docker volumes ────────────────────────────────
+db_data/

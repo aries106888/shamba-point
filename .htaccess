@@ -1,0 +1,19 @@
+Options -MultiViews -Indexes
+RewriteEngine On
+
+# ── 1. Let actual files & directories through unchanged ────────────────
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# ── 2. Backend API — served by PHP directly ────────────────────────────
+RewriteRule ^backend(/.*)?$ backend/index.php [QSA,L]
+
+# ── 3. Built JS / CSS assets (/Small-Farmers/assets/*) ────────────────
+RewriteRule ^assets/(.+)$ frontend/dist/assets/$1 [L]
+
+# ── 4. Produce images (/Small-Farmers/produce_*.png) ──────────────────
+RewriteRule ^(produce_[^/]+\.png)$ frontend/dist/$1 [L]
+
+# ── 5. Everything else → React SPA entry point ─────────────────────────
+RewriteRule ^ index.php [QSA,L]
